@@ -82,7 +82,7 @@
 			return angular.element();
 	};
 
-	angular.module('vs-repeat', []).directive('vsRepeat', ['$compile', function($compile){
+	angular.module('vs-repeat2', []).directive('vsRepeat2', ['$compile', function($compile){
 		return {
 			restrict: 'A',
 			scope: true,
