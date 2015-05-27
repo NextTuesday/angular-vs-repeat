@@ -1,6 +1,6 @@
 //
 // Copyright Kamil Pękala http://github.com/kamilkp
-// Angular Virtual Scroll Repeat v1.0.0-rc6 2015/01/26
+// Angular Virtual Scroll Repeat v1.0.0-rc7 2015/05/25
 //
 
 (function(window, angular){
@@ -93,7 +93,7 @@
 			}],
 			compile: function($element, $attrs){
 				var ngRepeatChild = $element.children().eq(0),
-					ngRepeatExpression = ngRepeatChild.attr('ng-repeat'),
+					ngRepeatExpression = ngRepeatChild.attr('ng-repeat') || ngRepeatChild.attr('data-ng-repeat'),
 					childCloneHtml = ngRepeatChild[0].outerHTML,
 					expressionMatches = /^\s*(\S+)\s+in\s+([\S\s]+?)(track\s+by\s+\S+)?$/.exec(ngRepeatExpression),
 					lhs = expressionMatches[1],
@@ -124,6 +124,8 @@
 							positioningPropertyTransform = $$horizontal ? 'translateX' : 'translateY',
 							positioningProperty = $$horizontal ? 'left' : 'top',
 
+							localScrollTrigger = false,
+
 							clientSize =  $$horizontal ? 'clientWidth' : 'clientHeight',
 							offsetSize =  $$horizontal ? 'offsetWidth' : 'offsetHeight',
 							scrollPos =  $$horizontal ? 'scrollLeft' : 'scrollTop';
@@ -134,14 +136,27 @@
 						if(sizesPropertyExists) $scope.sizesCumulative = [];
 
 						//initial defaults
-						$scope.elementSize = $scrollParent[0][clientSize] || 50;
+						$scope.elementSize = (+$attrs.vsRepeat) || $scrollParent[0][clientSize] || 50;
 						$scope.offsetBefore = 0;
 						$scope.offsetAfter = 0;
 						$scope.excess = 2;
+						$scope.scrollSettings = {
+							scrollIndex: 0,
+							scrollIndexPosition: 'top',
+						};
+
+						$scope.$watch($attrs.vsScrollSettings, function(newValue, oldValue) {
+							if (typeof newValue === 'undefined') {
+								return;
+							}
+							$scope.scrollSettings = newValue;
+							reinitialize($scope.scrollSettings);
+						}, true);
 
 						Object.keys(attributesDictionary).forEach(function(key){
 							if($attrs[key]){
 								$attrs.$observe(key, function(value){
+									// '+' serves for getting a number from the string as the attributes are always strings
 									$scope[attributesDictionary[key]] = +value;
 									reinitialize();
 								});
@@ -154,7 +169,7 @@
 							refresh();
 						});
 
-						function refresh(){
+						function refresh(event, data){
 							if(!originalCollection || originalCollection.length < 1){
 								$scope[collectionName] = [];
 								originalLength = 0;
@@ -166,7 +181,7 @@
 								originalLength = originalCollection.length;
 								if(sizesPropertyExists){
 									$scope.sizes = originalCollection.map(function(item){
-										return item[$attrs.vsSizeProperty];
+										return item[$attrs.vsSizeProperty] || $scope.elementSize;
 									});
 									var sum = 0;
 									$scope.sizesCumulative = $scope.sizes.map(function(size){
@@ -176,10 +191,11 @@
 									});
 									$scope.sizesCumulative.push(sum);
 								}
-								setAutoSize();
+								else
+									setAutoSize();
 							}
 
-							reinitialize();
+							reinitialize(data);
 						}
 
 						function setAutoSize(){
@@ -189,7 +205,7 @@
 										var children = $element.children(),
 											i = 0;
 										while(i < children.length){
-											if(children[i].attributes['ng-repeat'] != null){
+											if(children[i].attributes['ng-repeat'] != null || children[i].attributes['data-ng-repeat'] != null){
 												if(children[i][offsetSize]){
 													$scope.elementSize = children[i][offsetSize];
 													reinitialize();
@@ -221,14 +237,15 @@
 							'(sizesCumulative[$index + startIndex] + offsetBefore)' :
 							'(($index + startIndex) * elementSize + offsetBefore)';
 
+						var prevStyle = childClone.attr('style') || '';
 						if(typeof document.documentElement.style.transform !== "undefined"){ // browser supports transform css property
-							childClone.attr('ng-style', '{ "transform": "' + positioningPropertyTransform + '(" + ' + offsetCalculationString + ' + "px)"}');
+							childClone.attr('style', prevStyle + '; transform: ' + positioningPropertyTransform + '({{' + offsetCalculationString + '}}px)');
 						}
 						else if(typeof document.documentElement.style.webkitTransform !== "undefined"){ // browser supports -webkit-transform css property
-							childClone.attr('ng-style', '{ "-webkit-transform": "' + positioningPropertyTransform + '(" + ' + offsetCalculationString + ' + "px)"}');
+							childClone.attr('style', prevStyle + '; -webkit-transform: ' + positioningPropertyTransform + '({{' + offsetCalculationString + '}}px)');
 						}
 						else{
-							childClone.attr('ng-style', '{' + positioningProperty + ': ' + offsetCalculationString + ' + "px"}');
+							childClone.attr('style', prevStyle + '; ' + positioningProperty + ': {{' + offsetCalculationString + '}}px');
 						}
 
 						$compile(childClone)($scope);
@@ -251,12 +268,8 @@
 									e.preventDefault();
 									e.stopPropagation();
 									if(e.originalEvent) e = e.originalEvent;
-
-									var deltaX = (e.deltaX || -e.wheelDeltaX),
-										deltaY = (e.deltaY || -e.wheelDeltaY);
-
-									if (Math.abs(deltaX) > 0) $scrollParent[0].scrollLeft += deltaX;
-									if (Math.abs(deltaY) > 0) $scrollParent[0].scrollTop += deltaY;
+									$scrollParent[0].scrollLeft += (e.deltaX || -e.wheelDeltaX);
+									$scrollParent[0].scrollTop += (e.deltaY || -e.wheelDeltaY);
 								}).on('mousemove', function(e){
 									if(_prevMouse.x !== e.clientX || _prevMouse.y !== e.clientY)
 										angular.element(this).css('display', 'none');
@@ -272,8 +285,16 @@
 						$scope.endIndex = 0;
 
 						$scrollParent.on('scroll', function scrollHandler(e){
-							if(updateInnerCollection())
-								$scope.$apply();
+							// Check if the scrolling was triggerred by a local action to avoid
+							// unnecessary inner collection updating
+							if (localScrollTrigger) {
+								localScrollTrigger = false;
+							}
+							else {
+								if(updateInnerCollection()) {
+									$scope.$apply();
+								}
+							}
 						});
 
 						if(isMacOS){
@@ -309,15 +330,15 @@
 
 						var _prevStartIndex,
 							_prevEndIndex;
-						function reinitialize(){
+						function reinitialize(data){
 							_prevStartIndex = void 0;
 							_prevEndIndex = void 0;
-							updateInnerCollection();
+							updateInnerCollection(data);
 							resizeFillElement(sizesPropertyExists ?
 												$scope.sizesCumulative[originalLength] :
 												$scope.elementSize*originalLength
 											);
-							$scope.$emit('vsRepeatReinitialized');
+							$scope.$emit('vsRepeatReinitialized', $scope.startIndex, $scope.endIndex);
 						}
 
 						function resizeFillElement(size){
@@ -367,38 +388,238 @@
 								reinitOnClientHeightChange();
 						});
 
-						function updateInnerCollection(){
-							if(sizesPropertyExists){
-								$scope.startIndex = 0;
-								while($scope.sizesCumulative[$scope.startIndex] < $scrollParent[0][scrollPos] - $scope.offsetBefore)
-									$scope.startIndex++;
-								if($scope.startIndex > 0) $scope.startIndex--;
+						// Scroll to required position
+						// scrollTo - number of pixels to be scrolled to
+						function scrollToPosition(scrollTo) {
+							var scrolled = false;
+							if (scrollTo !== undefined && (typeof scrollTo) === 'number') {
+								// Set the position to be scrolled to
+								scrolled = Math.max(scrollTo, 0);
 
-								$scope.endIndex = $scope.startIndex;
-								while($scope.sizesCumulative[$scope.endIndex] < $scrollParent[0][scrollPos] - $scope.offsetBefore + $scrollParent[0][clientSize])
-									$scope.endIndex++;
+								// Is there a scroll change?
+								if ($scrollParent[0][scrollPos] !== scrolled) {
+									$scrollParent[0][scrollPos] = scrolled;
+									localScrollTrigger = true;
+								}
+								else {
+									scrolled = false;
+								}
+
+								// Emit the event
+								$scope.$emit('vsRepeatScrolled', scrolled);
 							}
-							else{
-								$scope.startIndex = Math.max(
-									Math.floor(
-										($scrollParent[0][scrollPos] - $scope.offsetBefore) / $scope.elementSize + $scope.excess/2
-									) - $scope.excess,
-									0
-								);
+							return scrolled;
+						}
 
-								$scope.endIndex = Math.min(
-									$scope.startIndex + Math.ceil(
-										$scrollParent[0][clientSize] / $scope.elementSize
-									) + $scope.excess,
-									originalLength
-								);
+						function updateInnerCollection(data){
+
+							var scrollChange = true,
+								position,
+								visibleStartIndex,
+								scrollIndexCumulativeSize,
+								scrollIndexSize;
+
+							if (data && data.elementSize !== undefined) $scope.elementSize = data.elementSize;
+
+							if (data && data.scrollIndex !== undefined) {
+								if (typeof $scope.scrollSettings !== 'undefined') {
+									$scope.scrollSettings.scrollIndex = data.scrollIndex;
+								}
+
+								if (sizesPropertyExists) {
+									scrollIndexSize = $scope.sizes[data.scrollIndex];
+									scrollIndexCumulativeSize = $scope.sizesCumulative[data.scrollIndex];
+								}
+								else {
+									scrollIndexSize = $scope.elementSize;
+									scrollIndexCumulativeSize = data.scrollIndex * $scope.elementSize;
+								}
+
+								// Item scroll position relative to the view, i.e. position === 0 means the top of the view,
+								// position === $scrollParent[0][clientSize] means the bottom
+								if (data.scrollIndexPosition !== undefined) {
+									if (typeof $scope.scrollSettings !== 'undefined') {
+										$scope.scrollSettings.scrollIndexPosition = data.scrollIndexPosition;
+									}
+									position = 0;
+									switch (typeof data.scrollIndexPosition) {
+										case 'number':
+											position = data.scrollIndexPosition + $scope.offsetBefore;
+											break;
+										case 'string':
+											switch (data.scrollIndexPosition) {
+												case 'top':
+													position = $scope.offsetBefore;
+													break;
+												case 'middle':
+													position = ($scrollParent[0][clientSize] - scrollIndexSize) / 2;
+													break;
+												case 'bottom':
+													position = $scrollParent[0][clientSize] - scrollIndexSize - $scope.offsetAfter;
+													break;
+												case 'inview':
+												case 'inview#top':
+												case 'inview#middle':
+												case 'inview#bottom':
+												case 'inview#auto':
+													// The item is in the viewport, do nothing
+													if (
+															($scrollParent[0][scrollPos] <= (scrollIndexCumulativeSize)) &&
+															($scrollParent[0][scrollPos] + $scrollParent[0][clientSize] - scrollIndexSize >= scrollIndexCumulativeSize)) {
+														scrollChange = false;
+														// The current item scroll position
+														position = scrollIndexCumulativeSize - $scrollParent[0][scrollPos];
+													}
+													// The item is out of the viewport
+													else {
+														if (data.scrollIndexPosition === 'inview#top' ||  data.scrollIndexPosition === 'inview') {
+															// Get it at the top
+															position = $scope.offsetBefore;
+														}
+														if (data.scrollIndexPosition === 'inview#bottom') {
+															// Get it at the bottom
+															position = $scrollParent[0][clientSize] - scrollIndexSize + $scope.offsetAfter;
+														}
+														if (data.scrollIndexPosition === 'inview#middle') {
+															// Get it at the middle
+															position = ($scrollParent[0][clientSize] - scrollIndexSize) / 2;
+														}
+														if (data.scrollIndexPosition === 'inview#auto') {
+															// Get it at the bottom or at the top, depending on what is closer
+															if ($scrollParent[0][scrollPos] <= scrollIndexCumulativeSize) {
+																position = $scrollParent[0][clientSize] - scrollIndexSize + $scope.offsetAfter;
+															}
+															else {
+																position = $scope.offsetBefore;
+															}
+														}
+													}
+													break;
+												default:
+													console.warn('Incorrect scrollIndexPosition string value');
+													break;
+											}
+											break;
+										default:
+											console.warn('Incorrect scrollIndexPosition type');
+											break;
+									}
+								}
+								else {
+									// The item is not required to be in the viewport, do nothing
+									scrollChange = false;
+									// The current item scroll position
+									if (sizesPropertyExists) {
+										position = $scope.sizesCumulative[data.scrollIndex] - $scrollParent[0][scrollPos];
+									}
+									else {
+										position = (data.scrollIndex * $scope.elementSize) - $scrollParent[0][scrollPos];
+									}
+								}
+
+								$scope.startIndex = data.scrollIndex;
+
+								if(sizesPropertyExists){
+
+									while($scope.sizesCumulative[$scope.startIndex] > $scope.sizesCumulative[data.scrollIndex] - position)
+									{
+										$scope.startIndex--;
+									}
+									// The real first item in the view
+									visibleStartIndex = Math.max($scope.startIndex, 0);
+
+									// Adjust the start index according to the excess
+									$scope.startIndex = Math.max(
+										Math.floor($scope.startIndex - ($scope.excess / 2)),
+										0
+									);
+
+									$scope.endIndex = $scope.startIndex;
+									while($scope.sizesCumulative[$scope.endIndex] < $scope.sizesCumulative[visibleStartIndex] - $scope.offsetBefore + $scrollParent[0][clientSize]) {
+										$scope.endIndex++;
+									}
+									// Adjust the end index according to the excess
+									$scope.endIndex = Math.min(
+										Math.ceil($scope.endIndex + ($scope.excess / 2)),
+										originalLength
+									);
+
+								}
+								else {
+
+									while(($scope.startIndex * $scope.elementSize) > (data.scrollIndex * $scope.elementSize) - position)
+									{
+										$scope.startIndex--;
+									}
+									// The real first item in the view
+									visibleStartIndex = Math.max($scope.startIndex, 0);
+									$scope.startIndex = Math.max(
+										Math.floor($scope.startIndex - ($scope.excess / 2)),
+										0
+									);
+
+									$scope.endIndex = Math.min(
+										$scope.startIndex + Math.ceil($scrollParent[0][clientSize] / $scope.elementSize) + $scope.excess / 2,
+										originalLength
+									);
+
+								}
+							}
+							else {
+
+								if(sizesPropertyExists){
+									$scope.startIndex = 0;
+									while($scope.sizesCumulative[$scope.startIndex] < $scrollParent[0][scrollPos] - $scope.offsetBefore) {
+										$scope.startIndex++;
+									}
+									if($scope.startIndex > 0) { $scope.startIndex--; }
+									// Adjust the start index according to the excess
+									$scope.startIndex = Math.max(
+										Math.floor($scope.startIndex - $scope.excess / 2),
+										0
+									);
+
+									$scope.endIndex = $scope.startIndex;
+									while($scope.sizesCumulative[$scope.endIndex] < $scrollParent[0][scrollPos] - $scope.offsetBefore + $scrollParent[0][clientSize]) {
+										$scope.endIndex++;
+									}
+									// Adjust the end index according to the excess
+									$scope.endIndex = Math.min(
+										Math.ceil($scope.endIndex + $scope.excess / 2),
+										originalLength
+									);
+								}
+								else{
+									$scope.startIndex = Math.max(
+										Math.floor(
+											($scrollParent[0][scrollPos] - $scope.offsetBefore) / $scope.elementSize + $scope.excess / 2
+										) - $scope.excess,
+										0
+									);
+
+									$scope.endIndex = Math.min(
+										$scope.startIndex + Math.ceil(
+											$scrollParent[0][clientSize] / $scope.elementSize
+										) + $scope.excess,
+										originalLength
+									);
+								}
 							}
 
+							var scrolled = false;
+							if (data !== undefined && data.scrollIndex !== undefined && position !== undefined && scrollChange) {
+								// Scroll to the requested position
+								scrolled = scrollToPosition(scrollIndexCumulativeSize - position);
+							}
 
 							var digestRequired = $scope.startIndex !== _prevStartIndex || $scope.endIndex !== _prevEndIndex;
 
-							if(digestRequired)
+							if(digestRequired) {
 								$scope[collectionName] = originalCollection.slice($scope.startIndex, $scope.endIndex);
+
+								// Emit the event
+								$scope.$emit('vsRepeatInnerCollectionUpdated', $scope.startIndex, $scope.endIndex, _prevStartIndex, _prevEndIndex);
+							}
 
 							_prevStartIndex = $scope.startIndex;
 							_prevEndIndex = $scope.endIndex;
