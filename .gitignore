@@ -1,3 +1,9 @@
 .DS_Store
 node_modules
 test/draft.js
+.idea/.name
+.idea/angular-vs-repeat.iml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
+.idea/workspace.xml
