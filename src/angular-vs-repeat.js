@@ -130,7 +130,7 @@
             0);
     }
 
-    angular.module('vs-repeat2', []).directive('vsRepeat2', ['$compile', function($compile){
+    angular.module('vs-repeat2', []).directive('vsRepeat2', ['$compile', '$parse', function($compile, $parse){
         return {
             restrict: 'A',
             scope: true,
