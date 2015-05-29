@@ -680,6 +680,16 @@
                                 }
                             }
 
+                            if ($attrs.vsScrollCb) {
+                                $scope.vsScrollCb($scope, {
+                                    attribute: {
+                                        top: $scrollParent[0]['scrollTop'],
+                                        left: $scrollParent[0]['scrollLeft']
+                                    }
+                                });
+                            }
+
+
                             var scrolled = false;
                             if (data !== undefined && data.scrollIndex !== undefined && position !== undefined && scrollChange) {
                                 // Scroll to the requested position
