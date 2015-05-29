@@ -222,10 +222,10 @@
                             refresh();
                         });
 
-						$scope.vsScrollCb = function () {};
-						$attrs.$observe('vsScrollCb', function (fn) {
-							$scope.vsScrollCb = $parse(fn);
-						});
+                        $scope.vsScrollYCb = function () {};
+                        $attrs.$observe('vsScrollYCb', function (fn) {
+                            $scope.vsScrollYCb = $parse(fn);
+                        });
 
                         function refresh(event, data){
                             if(!originalCollection || originalCollection.length < 1){
@@ -680,15 +680,11 @@
                                 }
                             }
 
-                            if ($attrs.vsScrollCb) {
-                                $scope.vsScrollCb($scope, {
-                                    attribute: {
-                                        top: $scrollParent[0]['scrollTop'],
-                                        left: $scrollParent[0]['scrollLeft']
-                                    }
+                            if ($attrs.vsScrollYCb) {
+                                $scope.vsScrollYCb($scope, {
+                                    attribute: $scrollPosition
                                 });
                             }
-
 
                             var scrolled = false;
                             if (data !== undefined && data.scrollIndex !== undefined && position !== undefined && scrollChange) {
