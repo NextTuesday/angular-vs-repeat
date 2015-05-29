@@ -1,3 +1,14 @@
+Version 1.0.0-rc9 (2015/05/25)
+=================
+
+  * bugfixes
+
+Version 1.0.0-rc8 (2015/05/25)
+=================
+
+  * support for `vs-scroll-parent="window"`
+  * bugfixes
+
 Version 1.0.0-rc7 (2015/05/25)
 =================
 

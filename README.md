@@ -1,4 +1,4 @@
-angular-vs-repeat v1.0.0-rc7
+angular-vs-repeat v1.0.0-rc9
 =================
 [![Build Status](https://travis-ci.org/kamilkp/angular-vs-repeat.svg?branch=master)](https://travis-ci.org/kamilkp/angular-vs-repeat) [![NPM version](https://badge.fury.io/js/angular-vs-repeat.svg)](http://badge.fury.io/js/angular-vs-repeat) [![Bower version](https://badge.fury.io/bo/angular-vs-repeat.svg)](http://badge.fury.io/bo/angular-vs-repeat)
 
@@ -50,7 +50,7 @@ example:
 
 
 ###OPTIONAL PARAMETERS (attributes):
-- `vs-scroll-parent="selector"` - selector to the scrollable container. The directive will look for a closest parent matching the given selector (defaults to the current element)
+- `vs-scroll-parent="selector"` - selector to the scrollable container. The directive will look for a closest parent matching the given selector (defaults to the current element). It can also have the value of "window" in which case the directive will hook on the main window scrollbar
 - `vs-offset-before="value"` - top/left offset in pixels (defaults to 0)
 - `vs-offset-after="value"` - bottom/right offset in pixels (defaults to 0)
 - `vs-horizontal` - horizontal mode (the ngRepeat'ed elements should be horizontally stacked)
