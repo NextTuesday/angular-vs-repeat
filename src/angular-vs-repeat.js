@@ -134,7 +134,7 @@
         return {
             restrict: 'A',
             scope: true,
-            require: '?^vsRepeat',
+            require: '?^vsRepeat2',
             controller: ['$scope', function($scope){
                 this.$scrollParent = $scope.$scrollParent;
                 this.$fillElement = $scope.$fillElement;
@@ -149,7 +149,7 @@
                     rhsSuffix = expressionMatches[3],
                     collectionName = '$vs_collection',
                     attributesDictionary = {
-                        'vsRepeat': 'elementSize',
+                        'vsRepeat2': 'elementSize',
                         'vsOffsetBefore': 'offsetBefore',
                         'vsOffsetAfter': 'offsetAfter',
                         'vsExcess': 'excess'
@@ -166,7 +166,7 @@
                             $$horizontal = typeof $attrs.vsHorizontal !== "undefined",
                             $wheelHelper,
                             $fillElement,
-                            autoSize = !$attrs.vsRepeat,
+                            autoSize = !$attrs.vsRepeat2,
                             sizesPropertyExists = !!$attrs.vsSize || !!$attrs.vsSizeProperty,
                             $scrollParent = $attrs.vsScrollParent ?
                                 $attrs.vsScrollParent === 'window' ? angular.element(window) :
@@ -189,7 +189,7 @@
                         if(sizesPropertyExists) $scope.sizesCumulative = [];
 
                         //initial defaults
-                        $scope.elementSize = (+$attrs.vsRepeat) || getClientSize($scrollParent[0], clientSize) || 50;
+                        $scope.elementSize = (+$attrs.vsRepeat2) || getClientSize($scrollParent[0], clientSize) || 50;
                         $scope.offsetBefore = 0;
                         $scope.offsetAfter = 0;
                         $scope.excess = 2;
@@ -343,16 +343,20 @@
                         $scrollParent.on('scroll', function scrollHandler(e){
                             // Check if the scrolling was triggerred by a local action to avoid
                             // unnecessary inner collection updating
-                            if (localScrollTrigger) {
-                                localScrollTrigger = false;
-                            }
-                            else {
-                                if(updateInnerCollection()) {
-                                    $scope.$apply();
-                                    $scope.$broadcast('vsSetSize-refresh');
-                                    // $scope.$digest();
+
+                            window.requestAnimationFrame(function () {
+                                if (localScrollTrigger) {
+                                    localScrollTrigger = false;
                                 }
-                            }
+                                else {
+                                    if(updateInnerCollection()) {
+                                         $scope.$digest();
+                                        //$scope.$apply();
+                                        $scope.$broadcast('vsSetSize-refresh');
+                                        // $scope.$digest();
+                                    }
+                                }
+                            });
                         });
 
                         if(isMacOS){
@@ -480,6 +484,12 @@
                                                     $scrollParent[0],
                                                     $$horizontal
                                                 );
+
+                            if ($attrs.vsScrollYCb) {
+                                $scope.vsScrollYCb($scope, {
+                                    attribute: $scrollPosition
+                                });
+                            }
 
                             var scrollChange = true,
                                 position,
@@ -678,12 +688,6 @@
                                         originalLength
                                     );
                                 }
-                            }
-
-                            if ($attrs.vsScrollYCb) {
-                                $scope.vsScrollYCb($scope, {
-                                    attribute: $scrollPosition
-                                });
                             }
 
                             var scrolled = false;
