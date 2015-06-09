@@ -349,7 +349,7 @@
                             }
                             else {
                                 if (updateInnerCollection()) {
-                                    $scope.$apply();
+                                    $scope.$digest();
                                     $scope.$broadcast('vsSetOffset-refresh');
                                 }
                             }
