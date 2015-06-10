@@ -270,7 +270,7 @@
                                                     reinitialize();
                                                     autoSize = false;
                                                     if ($scope.$root && !$scope.$root.$$phase) {
-                                                        $scope.$apply();
+                                                        $scope.$digest();
                                                     }
                                                 }
                                                 break;
@@ -370,11 +370,11 @@
                                 autoSize = true;
                                 setAutoSize();
                                 if ($scope.$root && !$scope.$root.$$phase) {
-                                    $scope.$apply();
+                                    $scope.$digest();
                                 }
                             }
                             if (updateInnerCollection()) {
-                                $scope.$apply();
+                                $scope.$digest();
                                 $scope.$broadcast('vsSetOffset-refresh');
                             }
                         }
@@ -410,7 +410,7 @@
                             $scope.$evalAsync(function(){
                                 $scope.$broadcast('vsSetOffset-refresh');
                             });
-                            $scope.$emit('vsRepeatReinitialized', $scope.startIndex, $scope.endIndex);
+                            //$scope.$emit('vsRepeatReinitialized', $scope.startIndex, $scope.endIndex);
                         }
 
                         function resizeFillElement(size) {
@@ -450,7 +450,7 @@
                             if (ch !== _prevClientSize) {
                                 reinitialize();
                                 if ($scope.$root && !$scope.$root.$$phase) {
-                                    $scope.$apply();
+                                    $scope.$digest();
                                     $scope.$broadcast('vsSetOffset-refresh');
                                 }
                             }
@@ -484,7 +484,7 @@
                                 }
 
                                 // Emit the event
-                                $scope.$emit('vsRepeatScrolled', scrolled);
+                                //$scope.$emit('vsRepeatScrolled', scrolled);
                             }
                             return scrolled;
                         }
@@ -734,7 +734,7 @@
                                 $scope[collectionName] = originalCollection.slice($scope.startIndex, $scope.endIndex);
 
                                 // Emit the event
-                                $scope.$emit('vsRepeatInnerCollectionUpdated', $scope.startIndex, $scope.endIndex, _prevStartIndex, _prevEndIndex);
+                                //$scope.$emit('vsRepeatInnerCollectionUpdated', $scope.startIndex, $scope.endIndex, _prevStartIndex, _prevEndIndex);
                                 _prevStartIndex = $scope.startIndex;
                                 _prevEndIndex = $scope.endIndex;
                             }
