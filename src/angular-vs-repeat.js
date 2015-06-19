@@ -734,7 +734,7 @@
                                 $scope[collectionName] = originalCollection.slice($scope.startIndex, $scope.endIndex);
 
                                 // Emit the event
-                                //$scope.$emit('vsRepeatInnerCollectionUpdated', $scope.startIndex, $scope.endIndex, _prevStartIndex, _prevEndIndex);
+                                $scope.$emit('vsRepeatInnerCollectionUpdated', $scope.startIndex, $scope.endIndex, _prevStartIndex, _prevEndIndex);
                                 _prevStartIndex = $scope.startIndex;
                                 _prevEndIndex = $scope.endIndex;
                             }
