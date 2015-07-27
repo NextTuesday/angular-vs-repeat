@@ -410,7 +410,7 @@
                             $scope.$evalAsync(function(){
                                 $scope.$broadcast('vsSetOffset-refresh');
                             });
-                            //$scope.$emit('vsRepeatReinitialized', $scope.startIndex, $scope.endIndex);
+                            $scope.$emit('vsRepeatReinitialized', $scope.startIndex, $scope.endIndex);
                         }
 
                         function resizeFillElement(size) {
@@ -484,7 +484,7 @@
                                 }
 
                                 // Emit the event
-                                //$scope.$emit('vsRepeatScrolled', scrolled);
+                                $scope.$emit('vsRepeatScrolled', scrolled);
                             }
                             return scrolled;
                         }
