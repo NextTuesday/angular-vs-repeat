@@ -314,7 +314,14 @@
                         $compile($fillElement)($scope);
                         $scope.$fillElement = $fillElement;
 
-                        var _prevMouse = {};
+                        var _prevMouse = {},
+                            _isMozzila = 'MozAppearance' in $element[0].style,
+                            _multiply = 1;
+
+                        if (_isMozzila) {
+                            _multiply = 16;
+                        }
+
                         if (isMacOS && $attrs.vsScrollParent !== 'window') {
                             $wheelHelper = angular.element('<div class="vs-repeat-wheel-helper"></div>')
                                 .on(wheelEventName, function(e) {
@@ -323,8 +330,9 @@
                                     if (e.originalEvent) {
                                         e = e.originalEvent;
                                     }
-                                    $scrollParent[0].scrollLeft += (e.deltaX || -e.wheelDeltaX);
-                                    $scrollParent[0].scrollTop += (e.deltaY || -e.wheelDeltaY);
+
+                                    $scrollParent[0].scrollLeft += (e.deltaX || -e.wheelDeltaX) * _multiply;
+                                    $scrollParent[0].scrollTop += (e.deltaY || -e.wheelDeltaY) * _multiply;
                                 }).on('mousemove', function(e) {
                                     if (_prevMouse.x !== e.clientX || _prevMouse.y !== e.clientY) {
                                         angular.element(this).css('display', 'none');
