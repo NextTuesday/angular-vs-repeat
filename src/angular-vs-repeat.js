@@ -59,7 +59,7 @@
     // - 'vsRepeatReinitialized' - an event the directive emits upon reinitialization done
 
     var isMacOS = navigator.appVersion.indexOf('Mac') != -1,
-        wheelEventName = typeof window.onwheel !== 'undefined' ? 'wheel' : typeof window.onmousewheel !== 'undefined' ? 'mousewheel' : 'DOMMouseScroll',
+        wheelEventName = /*typeof window.onwheel !== 'undefined' ? 'wheel' :*/ typeof window.onmousewheel !== 'undefined' ? 'mousewheel' : 'DOMMouseScroll',
         dde = document.documentElement,
         matchingFunction = dde.matches ? 'matches' :
                             dde.matchesSelector ? 'matchesSelector' :
@@ -316,15 +316,8 @@
 
                         var _prevMouse = {},
                             _isMozzila = 'MozAppearance' in $element[0].style,
-                            _multiplyX = 1,
-                            _multiplyY = 1,
                             _deltaX = 0,
                             _deltaY = 0;
-
-                        if (_isMozzila) {
-                            _multiplyX = 16;
-                            _multiplyY = 16;
-                        }
 
                         if (isMacOS && $attrs.vsScrollParent !== 'window') {
                             $wheelHelper = angular.element('<div class="vs-repeat-wheel-helper"></div>')
@@ -338,16 +331,16 @@
                                     _deltaX = (e.deltaX || -e.wheelDeltaX);
                                     _deltaY = (e.deltaY || -e.wheelDeltaY);
 
-                                    if (_isMozzila && !isNaN(_deltaX) && Math.abs(_deltaX) !== 0) {
-                                        _multiplyX = 1;
+                                    if (_isMozzila && isNaN(_deltaX)) {
+                                        _deltaX = 8 * e.detail;
                                     }
 
-                                    if (_isMozzila && !isNaN(_deltaY) && Math.abs(_deltaY) !== 0) {
-                                        _multiplyY = 1;
+                                    if (_isMozzila && isNaN(_deltaY)) {
+                                        _deltaY = 8 * e.detail;
                                     }
 
-                                    $scrollParent[0].scrollLeft += _deltaX * _multiplyY;
-                                    $scrollParent[0].scrollTop += _deltaY * _multiplyX;
+                                    $scrollParent[0].scrollLeft += _deltaX;
+                                    $scrollParent[0].scrollTop += _deltaY;
                                 }).on('mousemove', function (e) {
                                     if (_prevMouse.x !== e.clientX || _prevMouse.y !== e.clientY) {
                                         angular.element(this).css('display', 'none');
