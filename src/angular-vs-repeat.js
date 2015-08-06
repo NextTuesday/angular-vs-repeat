@@ -316,24 +316,39 @@
 
                         var _prevMouse = {},
                             _isMozzila = 'MozAppearance' in $element[0].style,
-                            _multiply = 1;
+                            _multiplyX = 1,
+                            _multiplyY = 1,
+                            _deltaX = 0,
+                            _deltaY = 0;
 
                         if (_isMozzila) {
-                            _multiply = 16;
+                            _multiplyX = 16;
+                            _multiplyY = 16;
                         }
 
                         if (isMacOS && $attrs.vsScrollParent !== 'window') {
                             $wheelHelper = angular.element('<div class="vs-repeat-wheel-helper"></div>')
-                                .on(wheelEventName, function(e) {
+                                .on(wheelEventName, function (e) {
                                     e.preventDefault();
                                     e.stopPropagation();
                                     if (e.originalEvent) {
                                         e = e.originalEvent;
                                     }
 
-                                    $scrollParent[0].scrollLeft += (e.deltaX || -e.wheelDeltaX) * _multiply;
-                                    $scrollParent[0].scrollTop += (e.deltaY || -e.wheelDeltaY) * _multiply;
-                                }).on('mousemove', function(e) {
+                                    _deltaX = (e.deltaX || -e.wheelDeltaX);
+                                    _deltaY = (e.deltaY || -e.wheelDeltaY);
+
+                                    if (_isMozzila && !isNaN(_deltaX) && Math.abs(_deltaX) !== 0) {
+                                        _multiplyX = 1;
+                                    }
+
+                                    if (_isMozzila && !isNaN(_deltaY) && Math.abs(_deltaY) !== 0) {
+                                        _multiplyY = 1;
+                                    }
+
+                                    $scrollParent[0].scrollLeft += _deltaX * _multiplyY;
+                                    $scrollParent[0].scrollTop += _deltaY * _multiplyX;
+                                }).on('mousemove', function (e) {
                                     if (_prevMouse.x !== e.clientX || _prevMouse.y !== e.clientY) {
                                         angular.element(this).css('display', 'none');
                                     }
