@@ -411,6 +411,26 @@
                             _prevEndIndex,
                             _minStartIndex,
                             _maxEndIndex;
+
+                        $scope.$on('vsRenderAll', function() {//e , quantum) {
+                            if($$options.latch) {
+                                setTimeout(function() {
+                                    // var __endIndex = Math.min($scope.endIndex + (quantum || 1), originalLength);
+                                    var __endIndex = originalLength;
+                                    _maxEndIndex = Math.max(__endIndex, _maxEndIndex);
+                                    $scope.endIndex = $$options.latch ? _maxEndIndex : __endIndex;
+                                    $scope[collectionName] = originalCollection.slice($scope.startIndex, $scope.endIndex);
+                                    _prevEndIndex = $scope.endIndex;
+
+                                    $scope.$apply(function() {
+                                        $element.addClass('vs-repeat-rendered-all');
+                                        $fillElement.remove();
+                                        $scope.$emit('vsRenderAllDone');
+                                    });
+                                });
+                            }
+                        });
+
                         function reinitialize(data) {
                             _prevStartIndex = void 0;
                             _prevEndIndex = void 0;
@@ -576,8 +596,8 @@
                                                         scrollChange = false;
                                                         // The current item scroll position
                                                         position = scrollIndexCumulativeSize - $scrollParent[0][scrollPos];
-                                                        }
-                                                        // The item is out of the viewport
+                                                    }
+                                                    // The item is out of the viewport
                                                     else {
                                                         if (data.scrollIndexPosition === 'inview#top' || data.scrollIndexPosition === 'inview') {
                                                             // Get it at the top
@@ -789,6 +809,19 @@
             'position: absolute;' +
             'z-index: 1;' +
         '}' +
+        '.vs-repeat-rendered-all .vs-repeat-repeated-element{' +
+            'position: static;' +
+        '}' +
+        '.vs-repeat-rendered-all .vs-repeat-wheel-helper{' +
+            'display: none;' +
+        '}' +
+        '.vs-repeat-rendered-all .vs-repeat-fill-element{' +
+            'display: none;' +
+        '}' +
         '</style>'
     ].join(''));
+
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = vsRepeatModule.name;
+    }
 })(window, window.angular);
