@@ -1,3 +1,58 @@
+Version 1.1.7 (2016/03/08)
+=================
+
+  * memory leak fixed when using `vs-scroll-parent`
+
+Version 1.1.6 (2016/03/01)
+=================
+
+  * table fill content element fix
+
+Version 1.1.5 (2016/02/27)
+=================
+
+  * bugfixes and PRs merged
+  * use `vs-repeat-container` to specify another repeat conainer (see readme)
+  * use `vs-scrolled-to-end` to do something when last element gets rendered (see readme)
+
+Version 1.1.4 (2016/01/17)
+=================
+
+  * bugfixes
+
+Version 1.1.2 (2015/12/06)
+=================
+
+  * bugfix
+
+Version 1.1.0 (2015/12/04)
+=================
+
+  * **breaking change** - the funcitonality implemented in https://github.com/kamilkp/angular-vs-repeat/pull/32 has been removed. It appears it can be implemented independently of vs-repeat and was causing the minified js file to be 50% larger.
+
+Version 1.0.1-beta.2 (2015/12/04)
+=================
+
+  * support for ng-repeat-start/ng-repeat-end
+
+Version 1.0.0-beta.1 (2015/12/04)
+=================
+
+  * bugfixes
+
+Version 1.0.0-beta.0 (2015/12/04)
+=================
+
+### Major changes
+  * elements are no longer absolutely positioned
+  * no need for a mousewheel helper dummy element on MacOS (to preserve inertia scrolling)
+  * no need for `top` updating directives - even better performance
+
+Version 1.0.0-rc12 (2015/08/03)
+=================
+
+  * general improvements
+
 Version 1.0.0-rc11 (2015/06/05)
 =================
 
